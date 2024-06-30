@@ -3,6 +3,12 @@ import bcrypt from "bcrypt";
 const Prisma = new PrismaClient();
 import jwt from "jsonwebtoken";
 
+const jwtSecret = process.env.JWT_SECRET;
+
+if (!jwtSecret) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
 export default defineEventHandler(async (event) => {
   const { email, password } = await readBody(event);
   if (!email || !password) {
@@ -19,10 +25,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const { username } = user;
-  console.log("user", user);
-  console.log("username", username);
 
-  const token = jwt.sign({ email, username }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ email, username }, jwtSecret, {
     expiresIn: "1h",
   });
   setResponseStatus(event, 200);

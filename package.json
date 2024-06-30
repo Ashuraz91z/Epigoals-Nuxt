@@ -19,6 +19,7 @@
     "nuxt": "^3.12.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "prisma": "^5.16.1",
