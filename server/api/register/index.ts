@@ -1,20 +1,28 @@
 import { PrismaClient } from "@prisma/client";
 const Prisma = new PrismaClient();
 import bcrypt from "bcrypt";
+import isValidEmail from "~/utils/RegexMail";
+import jwt from "jsonwebtoken";
+
+const secret = process.env.JWT_SECRET as string;
+
 export default defineEventHandler(async (event) => {
   if (event.node.req.method === "POST") {
     const { email, password, confirmPassword, username } = await readBody(
       event
     );
-    console.log("email :", email);
-    console.log("password :", password);
-    console.log("confirmPassword :", confirmPassword);
-    console.log("username :", username);
     //Verification Email et Username defined
     if (!email || !username) {
       setResponseStatus(event, 400);
       return {
         message: "Email et username sont requis",
+      };
+    }
+    //Verification Email
+    if (!isValidEmail(email)) {
+      setResponseStatus(event, 400);
+      return {
+        message: "Email invalide",
       };
     }
 
@@ -47,6 +55,9 @@ export default defineEventHandler(async (event) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     //creation user
+    const token = jwt.sign({ email, username }, secret, {
+      expiresIn: "7d",
+    }); // 7 jours
     try {
       const user = await Prisma.user.create({
         data: {
@@ -58,6 +69,7 @@ export default defineEventHandler(async (event) => {
       setResponseStatus(event, 201);
       return {
         message: "Utilisateur créé avec succès",
+        token,
       };
     } catch (error) {
       setResponseStatus(event, 500);
