@@ -27,9 +27,9 @@ export default defineEventHandler(async (event) => {
     return { message: "Email ou mot de passe incorrect" };
   }
 
-  const { username } = user;
+  const { username, id } = user;
 
-  const token = jwt.sign({ email, username }, secret, {
+  const token = jwt.sign({ email, username, id }, secret, {
     expiresIn: "7d",
   });
   setResponseStatus(event, 200);
