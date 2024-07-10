@@ -31,7 +31,6 @@ export async function changeMMR(matchId: string) {
             user: {
               select: {
                 MMR: true,
-                EPI: true,
               },
             },
           },
@@ -41,7 +40,6 @@ export async function changeMMR(matchId: string) {
             user: {
               select: {
                 MMR: true,
-                EPI: true,
               },
             },
           },
@@ -96,6 +94,7 @@ export async function changeMMR(matchId: string) {
         return {
           userId: joueur.userId,
           newMMR,
+          winner,
         };
       });
     };
@@ -114,16 +113,32 @@ export async function changeMMR(matchId: string) {
     );
 
     const updatePromises = [
-      ...updatedMMREquipe1.map(({ userId, newMMR }) =>
+      ...updatedMMREquipe1.map(({ userId, newMMR, winner }) =>
         prisma.user.update({
           where: { id: userId },
-          data: { MMR: newMMR },
+          data: {
+            MMR: newMMR,
+            victories: {
+              increment: winner === 1 ? 1 : 0,
+            },
+            defeats: {
+              increment: winner === 0 ? 1 : 0,
+            },
+          },
         })
       ),
-      ...updatedMMREquipe2.map(({ userId, newMMR }) =>
+      ...updatedMMREquipe2.map(({ userId, newMMR, winner }) =>
         prisma.user.update({
           where: { id: userId },
-          data: { MMR: newMMR },
+          data: {
+            MMR: newMMR,
+            victories: {
+              increment: winner === 1 ? 1 : 0,
+            },
+            defeats: {
+              increment: winner === 0 ? 1 : 0,
+            },
+          },
         })
       ),
     ];
@@ -132,12 +147,12 @@ export async function changeMMR(matchId: string) {
 
     return {
       isOk: true,
-      message: "MMR mis à jour",
+      message: "MMR et statistiques mis à jour",
     };
   } catch (error) {
     console.error(error);
     return {
-      error: "Erreur lors de la mise à jour du MMR",
+      error: "Erreur lors de la mise à jour du MMR et des statistiques",
     };
   }
 }

@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { H3Event } from "h3";
 import jwt from "jsonwebtoken";
 import { changeMMR } from "~/utils/ChangeMMR";
+import { changeEPI } from "~/utils/ChangeEPI";
 
 const prisma = new PrismaClient();
 const jwt_secret = process.env.JWT_SECRET;
@@ -48,7 +49,7 @@ export default defineEventHandler(async (event: H3Event) => {
           include: {
             user: {
               select: {
-                username: true, // Inclure uniquement le username de l'utilisateur
+                username: true, // usrname
               },
             },
           },
@@ -109,12 +110,18 @@ export default defineEventHandler(async (event: H3Event) => {
         },
       },
     });
+
     if (updatedMatch?.confirmations.length || 0 > 2) {
       const modifMMR = await changeMMR(matchId);
       if (modifMMR.isOk) {
         console.log("MMR modifié");
+        const modifEPI = await changeEPI(matchId);
+        if (modifEPI.isOk) {
+          console.log("EPI modifié");
+        }
       }
     }
+
     return updatedMatch;
   }
 
