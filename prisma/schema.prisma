@@ -53,6 +53,7 @@ model Equipe1 {
   userId  String @db.Uuid
   match   Match  @relation(fields: [matchId], references: [id])
   matchId String @db.Uuid
+  asWin   Boolean?
 }
 
 model Equipe2 {
@@ -61,6 +62,7 @@ model Equipe2 {
   userId  String @db.Uuid
   match   Match  @relation(fields: [matchId], references: [id])
   matchId String @db.Uuid
+  asWin   Boolean? //pb avec la creation pour prendre en compte directmeent le winner
 }
 
 model Confirmation {

@@ -74,42 +74,72 @@ export default defineEventHandler(async (event: H3Event) => {
           error: "Un ou plusieurs noms d'utilisateur sont invalides",
         };
       }
+
       const winner = scoreEquipe1 > scoreEquipe2 ? "EQUIPE1" : "EQUIPE2";
-      const newMatch = await prisma.match.create({
-        data: {
-          equipe1: {
-            create: equipe1Users.map((user) => ({
-              user: {
-                connect: { id: user.id },
-              },
-            })),
+      const asWin1 = scoreEquipe1 > scoreEquipe2 ? true : false;
+      const asWin2 = scoreEquipe2 > scoreEquipe1 ? true : false;
+
+      // Utilisation des transactions pour créer le match et mettre à jour les champs `asWin`
+      const result = await prisma.$transaction(async (prisma) => {
+        const newMatch = await prisma.match.create({
+          data: {
+            equipe1: {
+              create: equipe1Users.map((user) => ({
+                user: {
+                  connect: { id: user.id },
+                },
+              })),
+            },
+            equipe2: {
+              create: equipe2Users.map((user) => ({
+                user: {
+                  connect: { id: user.id },
+                },
+              })),
+            },
+            winner,
+            scoreEquipe1,
+            scoreEquipe2,
+            confirmations: {
+              create: [],
+            },
+            estConfirme: false,
+            date: new Date(),
           },
-          equipe2: {
-            create: equipe2Users.map((user) => ({
-              user: {
-                connect: { id: user.id },
-              },
-            })),
+          include: {
+            equipe1: true,
+            equipe2: true,
           },
-          winner,
-          scoreEquipe1,
-          scoreEquipe2,
-          confirmations: {
-            create: [],
+        });
+
+        const equipe1Ids = newMatch.equipe1.map((eq) => eq.id);
+        const equipe2Ids = newMatch.equipe2.map((eq) => eq.id);
+
+        await prisma.equipe1.updateMany({
+          where: {
+            id: { in: equipe1Ids },
           },
-          estConfirme: false,
-          date: new Date(),
-        },
-        include: {
-          equipe1: true,
-          equipe2: true,
-        },
+          data: {
+            asWin: asWin1,
+          },
+        });
+
+        await prisma.equipe2.updateMany({
+          where: {
+            id: { in: equipe2Ids },
+          },
+          data: {
+            asWin: asWin2,
+          },
+        });
+
+        return newMatch;
       });
 
       setResponseStatus(event, 201);
       return {
         message: "Match créé avec succès",
-        match: newMatch,
+        match: result,
       };
     } catch (error) {
       console.error(error);
