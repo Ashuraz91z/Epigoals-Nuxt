@@ -24,7 +24,7 @@
     "postcss": "^8.4.38",
     "prisma": "^5.16.1",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.5.2",
-    "vue-tsc": "^1.8.27"
+    "typescript": "^5.5.4",
+    "vue-tsc": "^2.0.29"
   }
 }

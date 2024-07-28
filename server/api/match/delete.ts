@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     try {
       const authHeader = event.node.req.headers.authorization;
       if (!authHeader) {
-        throw new Error("Authorization header missing");
+        throw new Error("Token missing");
       }
 
       const token = authHeader.split(" ")[1];
